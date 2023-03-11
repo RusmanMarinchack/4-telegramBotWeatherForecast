@@ -8,7 +8,7 @@ const tocen = '6246698710:AAHjcWCzVDYJEhlhOUeR7nYlenj4OSSUzn0';
 const idChat = 535124715;
 
 let bot = new TelegramBot(tocen, {polling: true});
-let myCache = new NodeCache({ stdTTL: 60000});
+let myCache = new NodeCache({ stdTTL: 60});
 
 const apiWeather = 'https://pro.openweathermap.org/data/2.5/forecast?q=Khmelnytskyi&lang=ua&appid=b1b15e88fa797225412429c1c50c122a1';
 const apiCorrency = 'https://api.privatbank.ua/p24api/pubinfo?exchange&coursid=5';
@@ -167,40 +167,22 @@ function sendWeather() {
 
 
 let sendCorrency = () => { 
-    if (fs.existsSync('correncys.txt') === false) {
-        fs.writeFileSync('correncys.txt', '[]')
+        if(myCache.has('corrency')) {
+            dataProcessing(myCache.get('corrency'));
+        } else {
+            axios.get(apiCorrency)
+            .then(respons => {
 
-        setTimeout(() => {	
-            fs.unlinkSync("correncys.txt")
-        }, 60000)
-    } else {
-        setTimeout(() => {	
-            fs.unlinkSync("correncys.txt")
-        }, 60000)
-    }
+                myCache.set('corrency', respons.data)
+                dataProcessing(respons.data);
+            })
+            .catch(err => {
+                if (err.message) {
+                    bot.sendMessage(idChat, 'Сталася помилка, спробуй пізніше.')
+                }
+            })
+        }
 
-
-
-    let correncys = JSON.parse(fs.readFileSync('correncys.txt', 'utf8'))
-
-    if(correncys.length) {
-         dataProcessing(correncys)
-    } else {
-        axios.get(apiCorrency)
-        .then(respons => {
-            respons.data.forEach(element => {
-                correncys.push(element)
-            });
-            
-            fs.writeFileSync('correncys.txt', JSON.stringify(correncys));
-            dataProcessing(respons.data);
-        })
-        .catch(err => {
-            if (err.message) {
-                bot.sendMessage(idChat, 'Сталася помилка, спробуй пізніше.')
-            }
-        })
-    } 
 
     function dataProcessing(data) {
 
