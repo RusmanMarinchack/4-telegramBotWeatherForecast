@@ -109,9 +109,6 @@ function sendWeather() {
         let dateSettings = { weekday:"long", year:"numeric", month:"short", day:"numeric", time:'numeric'}
         
         for(let i=0; i<data.list.length; i+=sort) {
-            // if(i >= 5) {
-            //     break
-            // }
 
             let time = data.list[i].dt_txt.split(' ')[1].substr(0, 5);
             let date = new Date(data.list[i].dt_txt).toLocaleDateString('uk', dateSettings);
@@ -148,13 +145,6 @@ function sendWeather() {
             let info = '';
 
             state[item].info.forEach(item => {
-                // if(item.temp <= 273 || item.feelsLike <= 273) {
-                //     temp = `${item.temp - 273}°C`;
-                //     feelsLike = `${item.feelsLike - 273}°C`;
-                // } else {
-                //     temp = `+${item.temp - 273}°C`;
-                //     feelsLike = `+${item.feelsLike - 273}°C`;
-                // }
 
                 let temp = item.temp <= 273 ? `${item.temp - 273}°C` : `+${item.temp - 273}°C`
                 let feelsLike = item.feelsLike <= 273 ? `${item.feelsLike - 273}°C` : `+${item.feelsLike - 273}°C`
