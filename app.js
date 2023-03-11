@@ -87,7 +87,7 @@ bot.on('message', async (msg) => {
     }
 })
 
-
+// sendWeather()
 function sendWeather() {
     axios.get(apiWeather)
     .then(respons => {
@@ -101,6 +101,7 @@ function sendWeather() {
 
     function dataProcessing(data) {
         
+        let state = {};
         let structureMessage = '';
         let weather = '';
 
@@ -108,9 +109,9 @@ function sendWeather() {
         let dateSettings = { weekday:"long", year:"numeric", month:"short", day:"numeric", time:'numeric'}
         
         for(let i=0; i<data.list.length; i+=sort) {
-            if(i >= 5) {
-                break
-            }
+            // if(i >= 5) {
+            //     break
+            // }
 
             let time = data.list[i].dt_txt.split(' ')[1].substr(0, 5);
             let date = new Date(data.list[i].dt_txt).toLocaleDateString('uk', dateSettings);
@@ -118,24 +119,56 @@ function sendWeather() {
             let feelsLike = Math.round(data.list[i].main.feels_like);
             let description = data.list[i].weather[0].description;
 
-
-            if(temp <= 273 || feelsLike <= 273) {
-                temp = `${temp - 273}°C`;
-                feelsLike = `${feelsLike - 273}°C`;
+            if(state[date] !== undefined) {
+                state[date].info.push(
+                    {
+                        "hour": time,
+                        "temp": temp,
+                        "feelsLike": feelsLike,
+                        "description": description
+                    }
+                )
             } else {
-                temp = `+${temp - 273}°C`;
-                feelsLike = `+${feelsLike - 273}°C`;
+                state[date] = {
+                    "dt_txt": date,
+                    "info": [
+                        {
+                            "hour": time,
+                            "temp": temp,
+                            "feelsLike": feelsLike,
+                            "description": description
+                        }
+                    ]
+                        
+                }
             }
-
-            weather += `
-    ${date}
-    ${time}, ${temp}, Відчувається: ${feelsLike}, ${description}\n`;
         }
         
+        for (item in state) {
+            let info = '';
 
-        structureMessage = `Погода в Хмельницькому: \n${weather}`;
+            state[item].info.forEach(item => {
+                // if(item.temp <= 273 || item.feelsLike <= 273) {
+                //     temp = `${item.temp - 273}°C`;
+                //     feelsLike = `${item.feelsLike - 273}°C`;
+                // } else {
+                //     temp = `+${item.temp - 273}°C`;
+                //     feelsLike = `+${item.feelsLike - 273}°C`;
+                // }
+
+                let temp = item.temp <= 273 ? `${item.temp - 273}°C` : `+${item.temp - 273}°C`
+                let feelsLike = item.feelsLike <= 273 ? `${item.feelsLike - 273}°C` : `+${item.feelsLike - 273}°C`
+
+                info += `  ${item.hour}, ${temp}, Відчувається: ${feelsLike}, ${item.description}\n`;
+            })
+
+            weather += `${state[item].dt_txt}\n${info}\n `;
+        }
+
+        structureMessage = `Погода в Хмельницькому: \n\n${weather}`.trim();
 
         bot.sendMessage(idChat, structureMessage);
+        // console.log(structureMessage)
     }
 
 }
@@ -146,11 +179,17 @@ function sendWeather() {
 let sendCorrency = () => { 
     if (fs.existsSync('correncys.txt') === false) {
         fs.writeFileSync('correncys.txt', '[]')
+
+        setTimeout(() => {	
+            fs.unlinkSync("correncys.txt")
+        }, 6000)
+    } else {
+        setTimeout(() => {	
+            fs.unlinkSync("correncys.txt")
+        }, 6000)
     }
 
-    setTimeout(() => {	
-        fs.unlinkSync("correncys.txt")
-    }, 60000)
+
 
     let correncys = JSON.parse(fs.readFileSync('correncys.txt', 'utf8'))
 
