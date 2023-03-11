@@ -172,7 +172,7 @@ let sendCorrency = () => {
 
         setTimeout(() => {	
             fs.unlinkSync("correncys.txt")
-        }, 6000)
+        }, 60000)
     } else {
         setTimeout(() => {	
             fs.unlinkSync("correncys.txt")
